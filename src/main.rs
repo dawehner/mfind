@@ -1,13 +1,15 @@
 extern crate docopt;
 extern crate rustc_serialize;
 extern crate regex;
+extern crate walkdir;
 
 use docopt::Docopt;
 use std::env;
 use std::string::String;
 use std::path::Path;
-use std::fs;
 use regex::Regex;
+use walkdir::WalkDir;
+
 
 #[derive(Debug, RustcDecodable)]
 struct Args {
@@ -29,7 +31,6 @@ fn compute_args(argv: Vec<String>) -> Args {
     ";
 
     let docopt = Docopt::new(USAGE);
-    // docopt.unwrap().argv( = Some(argv);
 
     let args: Args = docopt.and_then(|d| return d.argv(argv).decode()).unwrap_or_else(|e| e.exit());
     return args;
@@ -45,29 +46,14 @@ fn main() {
 }
 
 fn find_files(path: &Path, regex: &Regex) {
-    let paths = fs::read_dir(path).unwrap();
-
-    let names =
-    paths.map(|entry| {
+    for entry in WalkDir::new(path) {
         let entry = entry.unwrap();
-        let entry_path = entry.path();
 
-        match fs::metadata(entry_path.as_path()) {
-            Ok(x) => if x.is_dir() { find_files(entry_path.as_path(), regex) },
-            Err(e) => println!("{}", e)
-        }
-    
-        let file_name = entry_path.file_name().unwrap();
-        let file_name_as_str = file_name.to_str().unwrap();
-        let file_name_as_string = String::from(file_name_as_str);
+        let file_name_as_str = entry.path().file_name().unwrap().to_str().unwrap();
 
-        return file_name_as_string;
-    }).collect::<Vec<String>>();
-
-    for name in names {
-        let result = regex.find(&*name);
+        let result = regex.find(&file_name_as_str);
         if result.is_some() {
-            println!("{:?}", name);
+            println!("{:?}", file_name_as_str);
         }
     }
 }
