@@ -52,9 +52,9 @@ fn find_files(path: &Path, regex: &Regex) {
         let entry = entry.unwrap();
         let entry_path = entry.path();
 
-        match (fs::metadata(entry_path.as_path())) {
-            Ok(x) => if (x.is_dir()) { find_files(entry_path.as_path(), regex) },
-            Err(e) => println!("muh")
+        match fs::metadata(entry_path.as_path()) {
+            Ok(x) => if x.is_dir() { find_files(entry_path.as_path(), regex) },
+            Err(e) => println!("{}", e)
         }
     
         let file_name = entry_path.file_name().unwrap();
