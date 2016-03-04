@@ -39,9 +39,16 @@ fn compute_args(argv: Vec<String>) -> Args {
 fn main() {
     let args = compute_args(env::args().map(|res| res).collect());
 
+    let regex = Regex::new(&*args.arg_filename).unwrap();
+    match args.arg_folder {
+        Some(x) => find_files(Path::new(&*x), &regex),
+        None => find_files_current_dir(&regex),
+    }
+}
+
+fn find_files_current_dir(regex: &Regex) {
     let current_dir = &env::current_dir().unwrap();
     let path = Path::new(current_dir);
-    let regex = Regex::new(&*args.arg_filename).unwrap();
     find_files(path, &regex);
 }
 
